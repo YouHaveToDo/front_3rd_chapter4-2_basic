@@ -69,14 +69,6 @@ function displayProducts(products) {
 window.onload = () => {
     const worker = new Worker("worker.js");
 
-    worker.onmessage = (event) => {
-        if (event.data.progress) {
-            console.log(`Progress: ${event.data.progress}%`);
-        } else if (event.data.done) {
-            console.log("Heavy calculation complete.");
-        }
-    };
-
     let status = 'idle';
 
     let productSection = document.querySelector('#all-products');
@@ -88,7 +80,7 @@ window.onload = () => {
         if (status == 'idle' && position <= 0) {
             loadProducts();
 
-            worker.postMessage({ maxIter: 10_000_000 });
+            worker.postMessage({ maxIter: 10000000 });
         }
     }
 }
