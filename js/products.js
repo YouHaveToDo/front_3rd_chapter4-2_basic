@@ -1,7 +1,7 @@
 async function loadProducts() {
     const response = await fetch("https://fakestoreapi.com/products");
     const products = await response.json();
-    displayProducts(products);  
+    displayProducts(products);
 }
 
 function displayProducts(products) {
@@ -9,7 +9,7 @@ function displayProducts(products) {
     // Find the container where products will be displayed
     const container = document.querySelector('#all-products .container');
 
-   
+
     // Iterate over each product and create the HTML structure safely
     products.forEach(product => {
         // Create the main product div
@@ -22,6 +22,7 @@ function displayProducts(products) {
         const img = document.createElement('img');
         img.src = product.image;
         img.alt = `product: ${product.title}`;
+        img.loading="lazy";  // Lazy loading
         img.width=250;
         pictureDiv.appendChild(img);
 
@@ -60,16 +61,34 @@ function displayProducts(products) {
         container.appendChild(productElement);
     });
 
-    
+
 
 }
 
 
+window.onload = () => {
+    const worker = new Worker("worker.js");
 
-loadProducts();
+    worker.onmessage = (event) => {
+        if (event.data.progress) {
+            console.log(`Progress: ${event.data.progress}%`);
+        } else if (event.data.done) {
+            console.log("Heavy calculation complete.");
+        }
+    };
 
-// Simulate heavy operation. It could be a complex price calculation.
-for (let i = 0; i < 10000000; i++) {
-    const temp = Math.sqrt(i) * Math.sqrt(i);
+    let status = 'idle';
+
+    let productSection = document.querySelector('#all-products');
+
+
+    window.onscroll = () => {
+        let position = productSection.getBoundingClientRect().top - (window.scrollY + window.innerHeight);
+
+        if (status == 'idle' && position <= 0) {
+            loadProducts();
+
+            worker.postMessage({ maxIter: 10_000_000 });
+        }
+    }
 }
-
